@@ -276,22 +276,87 @@ wget -O Wan2.2-Lightning-High.safetensors "https://huggingface.co/lightx2v/Wan2.
 
 ---
 
+---
+
 ## ☁️ Step 8: Alternative: AWS EC2 G6 (L4 24GB VRAM)
 
-Jika butuh kualitas **FP16** atau resolusi **720P**, gunakan AWS EC2.
+Jika butuh kualitas **FP16** atau resolusi video **720P**, gunakan AWS EC2 G6.xlarge.
 
 ### 8.1 Spesifikasi AWS G6.xlarge
 
-- **GPU**: NVIDIA L4 (24GB VRAM) - Jauh lebih kuat dari RTX 4060.
-- **OS**: Ubuntu 24.04 LTS.
-- **CUDA**: 13.1 (Native).
+| Komponen    | Spec                                                  |
+| ----------- | ----------------------------------------------------- |
+| **GPU**     | NVIDIA L4 (24GB VRAM) - Jauh lebih kuat dari RTX 4060 |
+| **vCPU**    | 4                                                     |
+| **RAM**     | 16GB                                                  |
+| **Storage** | EBS (rekomendasi 100GB+ GP3)                          |
+| **OS**      | Ubuntu 24.04 LTS                                      |
 
-### 8.2 Cara Install Singkat
+### 8.2 Setup AWS EC2 Step-by-Step
 
-1. Setup CUDA & Driver (Metode Network Repo).
-2. Install Python 3.12 & `uv`.
-3. Clone Repo ini dan jalankan Step 3-6.
-4. Gunakan model **FP16** (bukan GGUF) untuk hasil maksimal.
+#### 1. Install Driver & CUDA 13.1 (Ubuntu 24.04 Native)
+
+SSH ke instance Anda, lalu jalankan:
+
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y linux-headers-$(uname -r) build-essential
+
+# Setup NVIDIA Network Repo
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb
+sudo dpkg -i cuda-keyring_1.1-1_all.deb
+sudo apt-get update
+
+# Install Drivers & Toolkit
+sudo apt-get -y install cuda-drivers cuda-toolkit-13-1
+
+# Setup Environment
+echo 'export PATH=/usr/local/cuda/bin:$PATH' >> ~/.bashrc
+echo 'export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH' >> ~/.bashrc
+source ~/.bashrc
+
+# Reboot Instance
+sudo reboot
+```
+
+#### 2. Install Python & ComfyUI (via `uv`)
+
+Setelah reboot, jalankan:
+
+```bash
+# Install uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source $HOME/.local/bin/env
+
+# Create Environment
+mkdir -p ~/ai-tools && cd ~/ai-tools
+uv venv flux-env --python 3.12
+source flux-env/bin/activate
+
+# Install PyTorch
+uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
+
+# Clone Repo ComfyUI & Custom Nodes (Lihat Step 4 & 6)
+# Catatan: Di L4 (24GB VRAM), Anda bisa download model FP16 untuk kualitas MAX!
+```
+
+#### 3. Auto-shutdown Script (Penting untuk Hemat Biaya)
+
+Agar tagihan AWS tidak membengkak jika lupa mematikan instance:
+
+```bash
+sudo tee /usr/local/bin/check-idle.sh << 'EOF'
+#!/bin/bash
+# Shutdown jika utilitas GPU di bawah 5% selama pengecekan
+IDLE_TIME=$(nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits | awk '{sum+=$1} END {print sum/NR}')
+if (( $(echo "$IDLE_TIME < 5" | bc -l) )); then
+  sudo shutdown -h now
+fi
+EOF
+
+chmod +x /usr/local/bin/check-idle.sh
+(crontab -l 2>/dev/null; echo "*/15 * * * * /usr/local/bin/check-idle.sh") | crontab -
+```
 
 ---
 
