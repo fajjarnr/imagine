@@ -3,13 +3,13 @@
 Panduan lengkap untuk men-deploy **FLUX.2-dev GGUF** (Image Generation) dan **Wan2.1 I2V** (Image-to-Video) di Windows 11 menggunakan WSL2 dengan GPU NVIDIA RTX 4060.
 
 > **Image Generation:** [`unsloth/FLUX.2-dev-GGUF`](https://huggingface.co/unsloth/FLUX.2-dev-GGUF) (Q4_K_M)
-> **Video Generation:** [`Wan-AI/Wan2.1-I2V-14B-480P`](https://huggingface.co/Wan-AI/Wan2.1-I2V-14B-480P) (GGUF format tersedia)
+> **Video Generation:** [`Wan-AI/Wan2.2-I2V-A14B`](https://huggingface.co/Wan-AI/Wan2.2-I2V-A14B) (MoE Architecture)
 
-> **Pipeline:** Generate image dengan FLUX → Generate video dengan Wan2.1 I2V
+> **Pipeline:** Generate image dengan FLUX → Generate video dengan **Wan 2.2 I2V**
 
 > **Kenapa GGUF format?**
 >
-> - **Hemat VRAM**: FLUX ~4-5GB, Wan2.1 ~6-7GB (bisa bergantian)
+> - **Hemat VRAM**: FLUX ~4-5GB, **Wan 2.2 (GGUF Expert)** ~6-7GB
 > - **Speed lebih cepat**: Quantized inference optimal untuk RTX 4060
 > - **Kualitas tetap bagus**: Q4_K_M memberikan balance sempurna
 > - **Cocok untuk RTX 4060 8GB**: Tidak perlu `--lowvram` mode
@@ -188,12 +188,16 @@ cd ..
 
 Jika Anda mendownload di PC lain, gunakan link ini dan pindahkan ke folder terkait:
 
-| Model               | Link                                                                                                          | Dest Folder                |
-| ------------------- | ------------------------------------------------------------------------------------------------------------- | -------------------------- |
-| **FLUX.2-dev GGUF** | [Download (8.2 GB)](https://huggingface.co/unsloth/FLUX.2-dev-GGUF/resolve/main/flux2-dev-Q4_K_M.gguf)        | `models/diffusion_models/` |
-| **FLUX T5XXL GGUF** | [Download (3.2 GB)](https://huggingface.co/unsloth/FLUX.2-dev-GGUF/resolve/main/t5xxl.gguf)                   | `models/clip/`             |
-| **FLUX VAE**        | [Download (335 MB)](https://huggingface.co/black-forest-labs/FLUX.2-dev/resolve/main/ae.safetensors)          | `models/vae/`              |
-| **FLUX CLIP-L**     | [Download (246 MB)](https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/clip_l.safetensors) | `models/clip/`             |
+**A. Model Utama (Taruh di: `ComfyUI/models/diffusion_models/`)**
+
+- [FLUX.2-dev GGUF Q4_K_M (8.2 GB)](https://huggingface.co/unsloth/FLUX.2-dev-GGUF/resolve/main/flux2-dev-Q4_K_M.gguf)
+- [Wan 2.2 High Noise GGUF Q4_K_M (9.1 GB)](https://huggingface.co/bullerwins/Wan2.2-I2V-A14B-GGUF/resolve/main/wan2.2_i2v_high_noise_14B_Q4_K_M.gguf)
+- [Wan 2.2 Low Noise GGUF Q4_K_M (9.1 GB)](https://huggingface.co/bullerwins/Wan2.2-I2V-A14B-GGUF/resolve/main/wan2.2_i2v_low_noise_14B_Q4_K_M.gguf)
+
+**B. Text Encoders & VAE (Taruh di folder masing-masing)**
+
+- [Wan UMT5-XXL fp8 (9.7 GB)](https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors)
+- [Wan VAE (508 MB)](https://huggingface.co/Wan-AI/Wan2.2-I2V-A14B/resolve/main/Wan2.1_VAE.pth)
 
 ### 5.2 Install ComfyUI-GGUF Node
 
@@ -223,9 +227,9 @@ chmod +x launch.sh
 
 ---
 
-## 🎬 Step 6: Setup Wan 2.1 / 2.2 (Video Generation)
+## 🎬 Step 6: Setup Wan 2.2 (Video Generation)
 
-Bagian ini digunakan untuk mengubah image hasil FLUX menjadi video (I2V).
+Bagian ini menggunakan arsitektur **MoE** (High & Low Noise experts).
 
 ### 6.1 Install WanVideoWrapper
 
@@ -235,25 +239,27 @@ git clone https://github.com/kijai/ComfyUI-WanVideoWrapper.git
 cd ComfyUI-WanVideoWrapper && uv pip install -r requirements.txt
 ```
 
-### 6.2 Download Model Wan (I2V)
+### 6.2 Download Model Wan 2.2 (GGUF untuk RTX 4060)
 
-Simpan di folder terkait (cek **Step 5.0** untuk link manual yang lebih lengkap):
+Simpan di `models/diffusion_models`:
 
 ```bash
-cd ~/ai-tools/ComfyUI
+cd ~/ai-tools/ComfyUI/models/diffusion_models
 
-# Download Wan 2.2 GGUF (Recommended)
+# High Noise GGUF
 huggingface-cli download bullerwins/Wan2.2-I2V-A14B-GGUF \
   wan2.2_i2v_high_noise_14B_Q4_K_M.gguf \
-  --local-dir models/diffusion_models --local-dir-use-symlinks False
+  --local-dir . --local-dir-use-symlinks False
 
-# Download UMT5 Text Encoder (9.7 GB raksasa)
-huggingface-cli download Wan-AI/Wan2.1-I2V-14B-480P \
-  umt5-xxl.safetensors \
-  --local-dir models/text_encoders --local-dir-use-symlinks False
+# Low Noise GGUF
+huggingface-cli download bullerwins/Wan2.2-I2V-A14B-GGUF \
+  wan2.2_i2v_low_noise_14B_Q4_K_M.gguf \
+  --local-dir . --local-dir-use-symlinks False
 ```
 
 ### 6.3 Setup VideoFlow (Lightning 4-Steps)
+
+Gunakan LoRA khusus agar render Wan 2.2 hanya butuh 4-8 steps.
 
 Gunakan **VideoFlow LoRA** untuk generate video super cepat hanya dalam 4 steps.
 
@@ -351,7 +357,7 @@ uv pip install torch torchvision torchaudio --index-url https://download.pytorch
 
 #### 4. Download Models (FP16 Max Quality)
 
-Karena VRAM 24GB sangat lega, gunakan model FP16 asli untuk kualitas terbaik:
+Karena VRAM 24GB sangat lega, gunakan model FP16 asli dari repo **Wan 2.2 Official**:
 
 ```bash
 cd ~/ai-tools/ComfyUI/models/diffusion_models
@@ -360,9 +366,9 @@ cd ~/ai-tools/ComfyUI/models/diffusion_models
 huggingface-cli download black-forest-labs/FLUX.2-dev \
   flux2-dev.safetensors --local-dir . --local-dir-use-symlinks False
 
-# Wan2.1 I2V 720P (Hanya bisa di L4)
-huggingface-cli download Wan-AI/Wan2.1-I2V-14B-720P \
-  diffusion_pytorch_model.safetensors --local-dir . --local-dir-use-symlinks False
+# Wan 2.2 I2V A14B (Official FP16 folders)
+huggingface-cli download Wan-AI/Wan2.2-I2V-A14B \
+  --local-dir . --local-dir-use-symlinks False
 ```
 
 #### 5. Launch ComfyUI di EC2 (Akses Publik)
