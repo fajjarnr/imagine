@@ -663,7 +663,7 @@ Jika Anda ingin menjalankan FLUX + Wan2.1 di cloud, AWS EC2 G6.xlarge adalah pil
 #### 1. Launch Instance
 
 ```bash
-# Gunakan AMI: Ubuntu 22.04 LTS dengan NVIDIA drivers
+# Gunakan AMI: Ubuntu 24.04 LTS dengan NVIDIA drivers
 # Instance type: g6.xlarge
 # Storage: 100GB GP3 SSD
 # Security Group: Allow port 22 (SSH) dan 8188 (ComfyUI)
@@ -678,11 +678,10 @@ ssh -i your-key.pem ubuntu@<ec2-public-ip>
 # Update system
 sudo apt update && sudo apt upgrade -y
 
-# Install NVIDIA drivers (Ubuntu 22.04)
+# Install NVIDIA drivers (Ubuntu 24.04)
 sudo apt install -y linux-headers-$(uname -r)
-distribution=$(. /etc/os-release;echo $ID$VERSION_ID | sed -e 's/\.//g')
-wget https://developer.download.nvidia.com/compute/cuda/repos/$distribution/x86_64/cuda-keyring_1.0-1_all.deb
-sudo dpkg -i cuda-keyring_1.0-1_all.deb
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb
+sudo dpkg -i cuda-keyring_1.1-1_all.deb
 sudo apt-get update
 sudo apt-get -y install cuda-drivers
 
@@ -696,8 +695,8 @@ nvidia-smi
 #### 3. Install CUDA Toolkit
 
 ```bash
-# Install CUDA Toolkit 12.6
-sudo apt-get install -y cuda-toolkit-12-6
+# Install CUDA Toolkit 13.1
+sudo apt-get install -y cuda-toolkit-13-1
 
 # Setup environment
 echo 'export PATH=/usr/local/cuda/bin:$PATH' >> ~/.bashrc
@@ -722,7 +721,8 @@ mkdir -p ~/ai-tools && cd ~/ai-tools
 uv venv flux-env --python 3.12
 source flux-env/bin/activate
 
-# Install PyTorch dengan CUDA 12.6 menggunakan uv
+# Install PyTorch dengan CUDA support menggunakan uv
+# CUDA 12.6 binaries compatible dengan driver 13.1
 uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
 
 # Clone dan setup ComfyUI
