@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+flux-env/
+.venv/
+
+# AI Models (Large files)
+models/
+*.gguf
+*.safetensors
+*.ckpt
+*.pth
+*.zip
+*.deb
+
+# OS
+.DS_Store
+Thumbs.db
+
+# ComfyUI specific
+input/
+output/
+temp/
+user/
+extra_model_paths.yaml
+
+# Local env
+.env
+.wslconfig
