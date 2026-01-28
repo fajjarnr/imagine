@@ -340,14 +340,59 @@ uv pip install torch torchvision torchaudio --index-url https://download.pytorch
 # Catatan: Di L4 (24GB VRAM), Anda bisa download model FP16 untuk kualitas MAX!
 ```
 
-#### 3. Auto-shutdown Script (Penting untuk Hemat Biaya)
+#### 3. Keuntungan AWS G6 (L4) vs Lokal (RTX 4060)
+
+| Fitur            | RTX 4060 8GB     | AWS L4 24GB             |
+| ---------------- | ---------------- | ----------------------- |
+| **VRAM**         | 8GB              | **24GB**                |
+| **Model Format** | GGUF (Quantized) | **FP16 (Full Quality)** |
+| **Max Res**      | 1024px           | **1536px+**             |
+| **Video Res**    | 480P             | **720P / 1080P**        |
+
+#### 4. Download Models (FP16 Max Quality)
+
+Karena VRAM 24GB sangat lega, gunakan model FP16 asli untuk kualitas terbaik:
+
+```bash
+cd ~/ai-tools/ComfyUI/models/diffusion_models
+
+# FLUX.2-dev (FP16)
+huggingface-cli download black-forest-labs/FLUX.2-dev \
+  flux2-dev.safetensors --local-dir . --local-dir-use-symlinks False
+
+# Wan2.1 I2V 720P (Hanya bisa di L4)
+huggingface-cli download Wan-AI/Wan2.1-I2V-14B-720P \
+  diffusion_pytorch_model.safetensors --local-dir . --local-dir-use-symlinks False
+```
+
+#### 5. Launch ComfyUI di EC2 (Akses Publik)
+
+Buat script khusus untuk AWS:
+
+```bash
+cat > launch-aws.sh << 'EOF'
+#!/bin/bash
+source ~/ai-tools/flux-env/bin/activate
+# Bind ke 0.0.0.0 agar bisa diakses dari browser Windows melalui Public IP
+python main.py --listen 0.0.0.0 --port 8188 --preview-method auto
+EOF
+chmod +x launch-aws.sh
+./launch-aws.sh
+```
+
+#### 6. Akses Browser
+
+Buka di Windows: `http://<EC2-PUBLIC-IP>:8188`
+_(Pastikan Port 8188 sudah dibuka di Security Group AWS)_
+
+#### 7. Auto-shutdown Script (Hemat Biaya)
 
 Agar tagihan AWS tidak membengkak jika lupa mematikan instance:
 
 ```bash
 sudo tee /usr/local/bin/check-idle.sh << 'EOF'
 #!/bin/bash
-# Shutdown jika utilitas GPU di bawah 5% selama pengecekan
+# Shutdown jika utilitas GPU di bawah 5%
 IDLE_TIME=$(nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits | awk '{sum+=$1} END {print sum/NR}')
 if (( $(echo "$IDLE_TIME < 5" | bc -l) )); then
   sudo shutdown -h now
