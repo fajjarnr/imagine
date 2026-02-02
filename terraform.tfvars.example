@@ -1,0 +1,22 @@
+imagine_public_key = "ssh-ed25519 AAAA... your_key_comment"
+
+# Optional project naming overrides
+# name_prefix = "imagine"
+# environment = "production"
+
+# Customize subnets when needed (availability_zone is optional)
+# public_subnets = [
+#   { cidr = "10.10.0.0/20", availability_zone = "ap-southeast-1a" },
+#   { cidr = "10.10.16.0/20", availability_zone = "ap-southeast-1b" }
+# ]
+# private_subnets = [
+#   { cidr = "10.10.32.0/20", availability_zone = "ap-southeast-1a" },
+#   { cidr = "10.10.48.0/20", availability_zone = "ap-southeast-1b" }
+# ]
+
+# Optionally set region and tags
+# region       = "ap-southeast-1"
+# default_tags = {
+#   Project = "infra-auto"
+#   Owner   = "your-name"
+# }

@@ -29,3 +29,11 @@ extra_model_paths.yaml
 # Local env
 .env
 .wslconfig
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+terraform.tfvars
+.terraform.lock.hcl

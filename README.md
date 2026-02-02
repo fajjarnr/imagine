@@ -194,7 +194,7 @@ Jika Anda mendownload di PC lain, gunakan link ini dan pindahkan ke folder terka
 - [Wan 2.2 High Noise GGUF Q4_K_M (9.1 GB)](https://huggingface.co/bullerwins/Wan2.2-I2V-A14B-GGUF/resolve/main/wan2.2_i2v_high_noise_14B_Q4_K_M.gguf)
 - [Wan 2.2 Low Noise GGUF Q4_K_M (9.1 GB)](https://huggingface.co/bullerwins/Wan2.2-I2V-A14B-GGUF/resolve/main/wan2.2_i2v_low_noise_14B_Q4_K_M.gguf)
 
-**B. Text Encoders & VAE (Taruh di folder masing-masing)**
+### B. Text Encoders & VAE (Taruh di folder masing-masing)
 
 - [Wan UMT5-XXL fp8 (9.7 GB)](https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors)
 - [Wan VAE (508 MB)](https://huggingface.co/Wan-AI/Wan2.2-I2V-A14B/resolve/main/Wan2.1_VAE.pth)
@@ -431,6 +431,47 @@ chmod +x /usr/local/bin/check-idle.sh
 
 - [CUDA WSL User Guide (NVIDIA)](https://docs.nvidia.com/cuda/wsl-user-guide/index.html)
 - [NVIDIA L4 Tensor Core Specs](https://www.nvidia.com/en-us/data-center/l4/)
+
+---
+
+---
+
+## 🏗️ Step 9: Terraform Infrastructure (Optional)
+
+Jika Anda ingin men-deploy environment ini di AWS menggunakan Terraform, ikuti langkah berikut:
+
+### 9.1 Persiapan
+
+Pastikan Anda memiliki [Terraform](https://developer.hashicorp.com/terraform/downloads) dan [AWS CLI](https://aws.amazon.com/cli/) yang sudah terkonfigurasi.
+
+### 9.2 Konfigurasi Variable
+
+Salin `terraform.tfvars.example` ke `terraform.tfvars` dan sesuaikan nilainya:
+
+```bash
+cp terraform.tfvars.example terraform.tfvars
+```
+
+Update `terraform.tfvars` dengan public key SSH Anda:
+
+```hcl
+imagine_public_key = "ssh-ed25519 AAA..."
+```
+
+> **Note:**
+>
+> - `instance_type` secara default menggunakan `g5g.xlarge` (cost-optimized).
+> - VPC dikonfigurasi menggunakan **Public Subnets Only** untuk menghemat biaya (tanpa NAT Gateway).
+
+### 9.3 Deploy
+
+```bash
+terraform init
+terraform plan
+terraform apply
+```
+
+Setelah selesai, Anda akan mendapatkan output IP address dari instance `imagine`.
 
 ---
 
