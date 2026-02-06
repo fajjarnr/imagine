@@ -1,17 +1,17 @@
-resource "aws_key_pair" "bastion_key" {
-  key_name   = "bastion-key"
+resource "aws_key_pair" "imagine_key" {
+  key_name   = "imagine-key"
   public_key = var.imagine_public_key
 }
 
-module "bastion" {
+module "imagine" {
   source = "./modules/ec2"
 
-  instance_name               = local.names.bastion
-  instance_type               = "g5g.xlarge"
-  instance_architecture       = "arm64"
+  instance_name               = local.names.imagine
+  instance_type               = "g4dn.xlarge"
+  instance_architecture       = "amd64"
   root_volume_size            = 100
   root_volume_type            = "gp3"
-  key_name                    = aws_key_pair.bastion_key.key_name
+  key_name                    = aws_key_pair.imagine_key.key_name
   subnet_id                   = module.vpc.public_subnet_ids[0]
   vpc_security_group_ids      = [module.vpc.security_group_id]
   associate_public_ip_address = true
@@ -30,11 +30,11 @@ module "bastion" {
     apt-get update && apt-get upgrade -y
     apt-get install -y linux-headers-$(uname -r) build-essential wget curl git bc
 
-    # 2. Install NVIDIA Driver & CUDA 13.1 (Ubuntu 24.04 ARM64)
-    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/sbsa/cuda-keyring_1.1-1_all.deb
+    # 2. Install NVIDIA Driver & CUDA 12.4 (Ubuntu 24.04 x86_64)
+    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb
     dpkg -i cuda-keyring_1.1-1_all.deb
     apt-get update
-    apt-get -y install cuda-drivers cuda-toolkit-13-1
+    apt-get -y install cuda-drivers cuda-toolkit-12-4
 
     # Setup Environment for all users
     echo 'export PATH=/usr/local/cuda/bin:$PATH' >> /etc/profile.d/cuda.sh
@@ -54,8 +54,8 @@ module "bastion" {
     ~/.local/bin/uv venv flux-env --python 3.12
     source flux-env/bin/activate
 
-    # Install PyTorch with CUDA support
-    uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
+    # Install PyTorch with CUDA 12.4 support
+    uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
 
     # Clone ComfyUI
     git clone https://github.com/comfyanonymous/ComfyUI.git

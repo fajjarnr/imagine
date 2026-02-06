@@ -17,6 +17,10 @@ imagine_public_key = "ssh-ed25519 AAAA... your_key_comment"
 # Optionally set region and tags
 # region       = "ap-southeast-1"
 # default_tags = {
-#   Project = "infra-auto"
+#   Project = "imagine"
 #   Owner   = "your-name"
 # }
+
+# Note:
+# - Instance type default: g4dn.xlarge (NVIDIA T4 16GB VRAM)
+# - VPC uses Public Subnets Only (no NAT Gateway) for cost savings

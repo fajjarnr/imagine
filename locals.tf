@@ -3,7 +3,7 @@ locals {
 
   names = {
     vpc     = var.vpc_name != "" ? var.vpc_name : "${local.resource_prefix}-vpc"
-    bastion = "${local.resource_prefix}-imagine"
+    imagine = "${local.resource_prefix}-imagine"
   }
 
   common_tags = merge(
