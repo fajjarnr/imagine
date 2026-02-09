@@ -6,12 +6,9 @@ locals {
     imagine = "${local.resource_prefix}-imagine"
   }
 
-  common_tags = merge(
-    var.default_tags,
-    {
-      Environment = var.environment
-      NamePrefix  = var.name_prefix
-      ManagedBy   = "terraform"
-    }
-  )
+  common_tags = {
+    Environment = var.environment
+    NamePrefix  = var.name_prefix
+    ManagedBy   = "terraform"
+  }
 }

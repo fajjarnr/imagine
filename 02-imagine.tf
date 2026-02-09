@@ -1,5 +1,5 @@
 resource "aws_key_pair" "imagine_key" {
-  key_name   = "imagine-key"
+  key_name   = "${local.resource_prefix}-key"
   public_key = var.imagine_public_key
 }
 
@@ -42,7 +42,7 @@ module "imagine" {
     source /etc/profile.d/cuda.sh
 
     # 3. Setup Python & ai-tools (using uv)
-    sudo -u ubuntu curl -LsSf https://astral.sh/uv/install.sh | sudo -u ubuntu sh
+    sudo -u ubuntu -i sh -c 'curl -LsSf https://astral.sh/uv/install.sh | sh'
 
     # Setup folders
     mkdir -p /home/ubuntu/ai-tools
@@ -66,7 +66,7 @@ module "imagine" {
     cd custom_nodes
     git clone https://github.com/ltdrdata/ComfyUI-Manager.git
     cd ..
-    EOT
+  EOT
 
 
     echo "Setup Complete! ComfyUI is ready. Rebooting to apply driver changes..."
