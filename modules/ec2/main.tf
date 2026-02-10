@@ -12,6 +12,16 @@ resource "aws_instance" "main" {
   iam_instance_profile        = var.enable_ssm ? aws_iam_instance_profile.ssm[0].name : null
   user_data                   = var.user_data
 
+  dynamic "instance_market_options" {
+    for_each = var.is_spot_instance ? [1] : []
+    content {
+      market_type = "spot"
+      spot_options {
+        max_price = null # Use on-demand price as max
+      }
+    }
+  }
+
   metadata_options {
     http_endpoint = "enabled"
     http_tokens   = "required"

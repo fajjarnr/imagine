@@ -73,3 +73,9 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "is_spot_instance" {
+  description = "Whether to use a spot instance"
+  type        = bool
+  default     = false
+}

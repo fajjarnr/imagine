@@ -7,8 +7,9 @@ module "imagine" {
   source = "./modules/ec2"
 
   instance_name               = local.names.imagine
-  instance_type               = "g4dn.xlarge"
+  instance_type               = "g4dn.2xlarge"
   instance_architecture       = "amd64"
+  is_spot_instance            = true
   root_volume_size            = 100
   root_volume_type            = "gp3"
   key_name                    = aws_key_pair.imagine_key.key_name
